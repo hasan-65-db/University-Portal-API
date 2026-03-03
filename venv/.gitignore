@@ -1,0 +1,21 @@
+# Python environment
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+
+# Database
+*.db
+*.sqlite3
+
+# User Uploads
+uploads/
+
+# IDE settings
+.vscode/
+.idea/
+
+# Environment variables / Secrets
+.env
