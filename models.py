@@ -63,3 +63,14 @@ class Assignment(Base):
     course_id = Column(Integer, ForeignKey("courses.id"))
 
     course = relationship("Course", back_populates="assignments")
+
+
+
+    
+    
+
+
+  
+
+
+

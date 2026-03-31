@@ -2,9 +2,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-url = "sqlite:///./studentsmanager.db"
+url = "postgresql://user:password@db:5432/course_manager_db"
 
-Engine = create_engine(url, connect_args={"check_same_thread":False})
+Engine = create_engine(url)
 
 SessionLocal = sessionmaker(autocommit = False, autoflush= False, bind = Engine)
 

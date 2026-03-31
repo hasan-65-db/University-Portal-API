@@ -1,0 +1,34 @@
+services:
+  # Your FastAPI App
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/course_manager_db
+    depends_on:
+      - db  # Tells Docker to start the database first
+      - redis
+
+  # The PostgreSQL Database
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=course_manager_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Keeps your data even if the container stops
+
+  redis:
+    image: redis:7
+    ports:
+       - "6379:6379"
+
+volumes:
+  postgres_data:
+
