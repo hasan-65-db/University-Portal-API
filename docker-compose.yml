@@ -1,19 +1,51 @@
+# Define the version of the Docker Compose file format
+version: '3.8'
+
 services:
-  # Your FastAPI App
+  # 1. The 'web' service: This is your FastAPI application [cite: 5, 13]
   web:
+    # Build the image using the Dockerfile in the current directory
     build: .
+    # Map port 8000 on your laptop to port 8000 inside the container
     ports:
       - "8000:8000"
+    # Sync your local folder with the container so code changes reflect instantly
+    volumes:
+      - .:/app
+    # Set variables your app needs (like the PostgreSQL connection string) [cite: 18, 19]
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/course_manager_db
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    # Ensure the database and redis start before the API tries to connect to them
+    depends_on:
+      - db
+      - redis
+
+  # 2. The 'worker' service: This handles tasks in the background [cite: 13, 15]
+  worker:
+    # Use the same environment/image as the web app
+    build: .
+    # Instead of starting the API, this starts the Celery worker process
+    # '-A worker.celery_app' points to your worker.py file
+    command: celery -A worker.celery_app worker --loglevel=info
     volumes:
       - .:/app
     environment:
       - DATABASE_URL=postgresql://user:password@db:5432/course_manager_db
-    depends_on:
-      - db  # Tells Docker to start the database first
-      - redis
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
 
-  # The PostgreSQL Database
+    env_file:        # <--- Add this line
+      - .env
+    depends_on:
+      - db
+      - redis
+      - web
+
+  # 3. The 'db' service: Your PostgreSQL database for persistent storage [cite: 5, 11, 21]
   db:
+    # Use the official Postgres image from Docker Hub
     image: postgres:15
     environment:
       - POSTGRES_USER=user
@@ -21,14 +53,16 @@ services:
       - POSTGRES_DB=course_manager_db
     ports:
       - "5432:5432"
+    # Map a 'volume' so your data isn't deleted when you stop the container
     volumes:
-      - postgres_data:/var/lib/postgresql/data # Keeps your data even if the container stops
+      - postgres_data:/var/lib/postgresql/data
 
+  # 4. The 'redis' service: Acts as the broker (message carrier) for Celery [cite: 6, 13, 15]
   redis:
     image: redis:7
     ports:
        - "6379:6379"
 
+# Define the persistent storage space for the database
 volumes:
   postgres_data:
-

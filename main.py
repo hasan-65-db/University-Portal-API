@@ -7,6 +7,7 @@ import os
 from fastapi.middleware.cors import CORSMiddleware;
 import redis, json
 from redis_client import redis_client
+from worker import send_registration_email
 
 
 models.Base.metadata.create_all(bind=Engine)
@@ -203,6 +204,7 @@ def enrollment(
     db.add(new_enrollment)
     db.commit()
     db.refresh(new_enrollment)
+    send_registration_email.delay(current_student.email,course.name)
     redis_client.delete(f"courses_student_{current_student.id}")
     redis_client.delete(f"assignments_student{current_student.id}")
     return {"message":"Enrolled Successfully"}
